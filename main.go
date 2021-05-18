@@ -8,56 +8,43 @@ import (
 )
 
 type person struct {
-	First string
+	First string `json:"first"`
 }
 
 func main() {
 
-	p1 := person{First: "alice"}
-	p2 := person{First: "bob"}
-
-	xp := []person{p1, p2}
-
-	// marshal []person object into json
-	bs, err := json.Marshal(&xp)
-	if err != nil {
-		log.Panic("error marshalling []person into json", err)
-	}
-
-	log.Println(string(bs))
-
-	// unmarshal json into a []person object
-	people := []person{}
-	err = json.Unmarshal(bs, &people) // creat object
-	if err != nil {
-		log.Panic("error unmarshalling json into []person object", err)
-	}
-
-	fmt.Println(people)
-
-	// *** tcp ***
-
+	// tcp
+	// handlers
 	// encoder
-	http.HandleFunc("/encode", func(w http.ResponseWriter, r *http.Request) {
-		// encode data into json
-		p1 := person{First: "alice"}
-		err = json.NewEncoder(w).Encode(p1.First)
+	http.HandleFunc("/encoder", func(w http.ResponseWriter, r *http.Request) {
+		// encode data to json then display it on web page.
+		// make some data
+		names := []person{
+			{First: "alice"},
+			{First: "bob"},
+			{First: "cora"},
+		}
+		// encode and send to web page
+		err := json.NewEncoder(w).Encode(&names)
 		if err != nil {
-			log.Println("Could not encode data", err)
+			log.Println("error encoding data into json", err)
+			return
 		}
 	})
 
 	// decoder
-	// https://curlbuilder.com/
-	// curl -XGET -H "Content-type: application/json" -d '{"First": "Bob"}' 'localhost:8080/decode'
-	http.HandleFunc("/decode", func(w http.ResponseWriter, r *http.Request) {
-		var p1 person
-		err := json.NewDecoder(r.Body).Decode(&p1)
-		if err != nil {
-			log.Println("Could not decode json data", err)
-		}
+	http.HandleFunc("/decoder", func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println("Person: ", p1)
+		// create object that the json data will decode into
+		var people []person
+
+		// get the json data and decode it
+		err := json.NewDecoder(r.Body).Decode(&people)
+		if err != nil {
+			log.Println("error decoding json data into object", err)
+			return
+		}
+		fmt.Println("people:\n", people)
 	})
 
 	http.ListenAndServe(":8080", nil)
