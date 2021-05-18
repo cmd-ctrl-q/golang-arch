@@ -37,14 +37,27 @@ func main() {
 
 	// *** tcp ***
 
-	// handler functions
+	// encoder
 	http.HandleFunc("/encode", func(w http.ResponseWriter, r *http.Request) {
 		// encode data into json
-		dog := person{First: "dotson"}
-		err = json.NewEncoder(w).Encode(dog.First)
+		p1 := person{First: "alice"}
+		err = json.NewEncoder(w).Encode(p1.First)
 		if err != nil {
 			log.Println("Could not encode data", err)
 		}
+	})
+
+	// decoder
+	// https://curlbuilder.com/
+	// curl -XGET -H "Content-type: application/json" -d '{"First": "Bob"}' 'localhost:8080/decode'
+	http.HandleFunc("/decode", func(w http.ResponseWriter, r *http.Request) {
+		var p1 person
+		err := json.NewDecoder(r.Body).Decode(&p1)
+		if err != nil {
+			log.Println("Could not decode json data", err)
+		}
+
+		log.Println("Person: ", p1)
 	})
 
 	http.ListenAndServe(":8080", nil)
