@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 )
 
 type person struct {
@@ -33,4 +34,18 @@ func main() {
 	}
 
 	fmt.Println(people)
+
+	// *** tcp ***
+
+	// handler functions
+	http.HandleFunc("/encode", func(w http.ResponseWriter, r *http.Request) {
+		// encode data into json
+		dog := person{First: "dotson"}
+		err = json.NewEncoder(w).Encode(dog.First)
+		if err != nil {
+			log.Println("Could not encode data", err)
+		}
+	})
+
+	http.ListenAndServe(":8080", nil)
 }
