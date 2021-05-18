@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -16,10 +17,20 @@ func main() {
 
 	xp := []person{p1, p2}
 
+	// marshal []person object into json
 	bs, err := json.Marshal(&xp)
 	if err != nil {
-		log.Panic(err)
+		log.Panic("error marshalling []person into json", err)
 	}
 
 	log.Println(string(bs))
+
+	// unmarshal json into a []person object
+	people := []person{}
+	err = json.Unmarshal(bs, &people) // creat object
+	if err != nil {
+		log.Panic("error unmarshalling json into []person object", err)
+	}
+
+	fmt.Println(people)
 }
