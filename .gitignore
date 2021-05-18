@@ -16,3 +16,6 @@
 
 # workspaces for editors
 *.code-workspace 
+
+# readme's 
+README.*.md
