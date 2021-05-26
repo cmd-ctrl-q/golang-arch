@@ -5,9 +5,29 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type UserClaims struct {
+	jwt.StandardClaims
+	SessionID int64
+}
+
+func (u *UserClaims) Valid() error {
+	// check if token expired
+	if !u.VerifyExpiresAt(time.Now().Unix(), true) {
+		return fmt.Errorf("Token has expried")
+	}
+
+	if u.SessionID == 0 {
+		return fmt.Errorf("Invalid session ID")
+	}
+
+	return nil
+}
 
 var secret []byte
 
@@ -64,6 +84,7 @@ func signMessage(msg []byte) ([]byte, error) {
 	return signature, nil
 }
 
+// checks if a signature matches
 func checkSignature(msg, sig []byte) (bool, error) {
 	newSignature, err := signMessage(msg)
 	if err != nil {
