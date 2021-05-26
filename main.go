@@ -2,12 +2,15 @@ package main
 
 import (
 	"crypto/hmac"
+	"crypto/rand" // most random your computer can generate
 	"crypto/sha512"
 	"fmt"
+	"io"
 	"log"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -74,7 +77,7 @@ func comparePassword(password string, hashedPass []byte) error {
 }
 
 func signMessage(msg []byte) ([]byte, error) {
-	hash := hmac.New(sha512.New, secret)
+	hash := hmac.New(sha512.New, keys[currentKid].key)
 	_, err := hash.Write(msg)
 	if err != nil {
 		return nil, fmt.Errorf("Error in signMessage while hashing message: %w", err)
@@ -106,6 +109,41 @@ func createToken(c *UserClaims) (string, error) {
 	return signedToken, nil
 }
 
+// cron job
+func generateNewKey() error {
+	newKey := make([]byte, 64)
+	_, err := io.ReadFull(rand.Reader, newKey)
+	if err != nil {
+		return fmt.Errorf("Error in generateNewKey while generating key: %w", err)
+	}
+
+	uid := uuid.New()
+	if err != nil {
+		return fmt.Errorf("Error in generateNewKey while generating key: %w", err)
+	}
+
+	// add the new key to the map of valid keys
+	keys[uid.String()] = key{
+		key:     newKey,
+		created: time.Now(),
+	}
+
+	currentKid = uid.String()
+
+	return nil
+}
+
+type key struct {
+	key []byte
+
+	// if the key is older than a week, make user log in again.
+	created time.Time
+}
+
+var currentKid = "" // current non-expired key id
+// map of keys you used so far. (even expired keys)
+var keys = map[string]key{} // could be cleared out periodically.
+
 func parseToken(signedToken string) (*UserClaims, error) {
 	// ParseWithClaims passes the token into anon the function for you to verify
 	// the `t` in the anonymous function is the unverified token.
@@ -115,7 +153,20 @@ func parseToken(signedToken string) (*UserClaims, error) {
 			return nil, fmt.Errorf("Invalid signing algorithm")
 		}
 
-		return secret, nil
+		// kid = key id
+		kid, ok := t.Header["kid"].(string) // assert its a string
+		if !ok {
+			return nil, fmt.Errorf("Invlaid key ID")
+		}
+
+		// when you parse a token, it will look up the key id from within the token,
+		// to figure which key was used to sign the message.
+		k, ok := keys[kid]
+		if !ok {
+			return nil, fmt.Errorf("Invalid key ID")
+		}
+
+		return k, nil
 	})
 
 	if err != nil {
