@@ -52,6 +52,7 @@ func main() {
 	}
 
 	log.Println("Logged in!")
+
 }
 
 func hashPassword(password string) ([]byte, error) {
@@ -103,4 +104,28 @@ func createToken(c *UserClaims) (string, error) {
 		return "", fmt.Errorf("Error in createToken when signing token: %w", err)
 	}
 	return signedToken, nil
+}
+
+func parseToken(signedToken string) (*UserClaims, error) {
+	// ParseWithClaims passes the token into anon the function for you to verify
+	// the `t` in the anonymous function is the unverified token.
+	t, err := jwt.ParseWithClaims(signedToken, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
+		// jwt probably verifies the signing methods match, but can do it anyways.
+		if t.Method.Alg() != jwt.SigningMethodES512.Alg() {
+			return nil, fmt.Errorf("Invalid signing algorithm")
+		}
+
+		return secret, nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("Error in parseToken while parsing token: %w", err)
+	}
+
+	if !t.Valid {
+		return nil, fmt.Errorf("Error in parseToken, token is not valid")
+	}
+
+	// assert that t.Claims if of type pointer to UserClaims
+	return t.Claims.(*UserClaims), nil
 }
