@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"github.com/cmd-ctrl-q/golang-arch/internal/models"
-	"github.com/cmd-ctrl-q/golang-arch/storage"
+	"github.com/cmd-ctrl-q/golang-arch/internal/storage"
 )
 
 type MongoDB map[int]models.User

@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/cmd-ctrl-q/golang-arch/internal/models"
-	"github.com/cmd-ctrl-q/golang-arch/storage"
-	"github.com/cmd-ctrl-q/golang-arch/storage/harddrive"
-	"github.com/cmd-ctrl-q/golang-arch/storage/mongo"
+	"github.com/cmd-ctrl-q/golang-arch/internal/storage"
+	"github.com/cmd-ctrl-q/golang-arch/internal/storage/harddrive"
+	"github.com/cmd-ctrl-q/golang-arch/internal/storage/mongo"
 )
 
 func main() {
