@@ -2,7 +2,7 @@ package storage
 
 import "github.com/cmd-ctrl-q/golang-arch/internal/models"
 
-// mongoDB and harddrive implement accessor
+// Accessor is used to Save and Retrieve users
 type Accessor interface {
 	Save(n int, u models.User)
 	Retrieve(n int) models.User
