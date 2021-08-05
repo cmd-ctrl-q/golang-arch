@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/cmd-ctrl-q/golang-arch/session"
 )
@@ -22,4 +23,28 @@ func main() {
 
 	// get is admin value from context
 	fmt.Println(*session.GetIsAdmin(ctx)) // true
+
+	ctx.Done()
+
+	// *********
+
+	ctx = context.Background()
+	// time out at 1000 ms
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	// cancel() is only used to end operations early
+	// based on a time out or deadline.
+	defer cancel()
+
+	// sleep for 100ms. if sleep loger than timeout, then ctx.Done()
+	// is called and stops after sleep is done.
+	time.Sleep(5000 * time.Millisecond)
+
+	// do something
+	select {
+	case <-ctx.Done():
+		fmt.Println("work not finished")
+	default:
+		fmt.Println("work done")
+	}
+
 }
