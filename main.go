@@ -1,37 +1,24 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"io"
-	"log"
-	"os"
+
+	"github.com/cmd-ctrl-q/golang-arch/session"
 )
 
 func main() {
-	file, err := os.Open("file-01.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
 
-	data := make([]byte, 100)
-	count, err := file.Read(data)
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx := context.Background()
 
-	fmt.Printf("read %d bytes: %q\n%s", count, data[:count], string(data))
+	// set context key and value
+	ctx = session.SetUserID(ctx, 98765)
 
-	file2, err := os.Create("file-02.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// get userid value
+	v := session.GetUserID(ctx)
+	fmt.Println("userID key value:", v)
 
-	// copy content from file into file2
-	n, err := io.Copy(file2, file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Bytes written into file2: ", n)
+	// get admin value
+	b := session.GetAdmin(ctx)
+	fmt.Println("admin key value:", b)
 }
