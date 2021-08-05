@@ -9,16 +9,17 @@ import (
 
 func main() {
 
-	ctx := context.Background()
+	var ctx context.Context = context.Background()
 
-	// set context key and value
-	ctx = session.SetUserID(ctx, 98765)
+	// set user id in context
+	ctx = session.SetUserID(ctx, 42)
 
-	// get userid value
-	v := session.GetUserID(ctx)
-	fmt.Println("userID key value:", v)
+	// get user id from context
+	fmt.Println(*session.GetUserID(ctx)) // 42
 
-	// get admin value
-	b := session.GetAdmin(ctx)
-	fmt.Println("admin key value:", b)
+	// set is admin in context
+	ctx = session.SetIsAdmin(ctx, true)
+
+	// get is admin value from context
+	fmt.Println(*session.GetIsAdmin(ctx)) // true
 }
