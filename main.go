@@ -3,49 +3,45 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
-
-	"github.com/cmd-ctrl-q/golang-arch/session"
 )
 
 func main() {
 
-	var ctx context.Context = context.Background()
+	fmt.Printf("GOROUTINES RUNNING = %d\n", runtime.NumGoroutine())
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	// defer cancel()
 
-	// set user id in context
-	ctx = session.SetUserID(ctx, 42)
+	// launch 100 go routines
+	for i := 0; i < 100; i++ {
+		go func(n int) {
+			fmt.Println("Launching goroutine:", n)
+			// infinite for loop
+			for {
 
-	// get user id from context
-	fmt.Println(*session.GetUserID(ctx)) // 42
+				// do work
+				time.Sleep(50 * time.Millisecond)
 
-	// set is admin in context
-	ctx = session.SetIsAdmin(ctx, true)
-
-	// get is admin value from context
-	fmt.Println(*session.GetIsAdmin(ctx)) // true
-
-	ctx.Done()
-
-	// ***** implement context with timeout
-
-	ctx = context.Background()
-	// time out at 1000 ms
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	// cancel() is only used to end operations early
-	// based on a time out or deadline.
-	defer cancel()
-
-	// sleep for 100ms. if sleep loger than timeout, then ctx.Done()
-	// is called and stops after sleep is done.
-	time.Sleep(5000 * time.Millisecond)
-
-	select {
-	case <-ctx.Done():
-		fmt.Println("work not finished")
-	default:
-		fmt.Println("work done")
+				// go routine either exits or does work
+				select {
+				case <-ctx.Done():
+					runtime.Goexit() // exit go routine, similar to return
+				default:
+					fmt.Printf("goroutine %d doing work\n", n)
+					time.Sleep(50 * time.Millisecond)
+				}
+			}
+		}(i)
 	}
 
-	// ***** launch 100 go routines
+	// goroutines finish in < 1 millisecond
+	time.Sleep(time.Millisecond)
+	fmt.Printf("GOROUTINES RUNNING AFTER ONE MILLISECOND = %d\n", runtime.NumGoroutine())
 
+	cancel()
+	// give goroutines time to exit
+	time.Sleep(100 * time.Millisecond)
+	fmt.Printf("GOROUTINES RUNNING AFTER CANCEL() = %d\n", runtime.NumGoroutine())
 }
