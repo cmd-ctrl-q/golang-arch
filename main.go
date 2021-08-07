@@ -1,47 +1,23 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"runtime"
-	"time"
+	"os"
 )
 
 func main() {
 
-	fmt.Printf("GOROUTINES RUNNING = %d\n", runtime.NumGoroutine())
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	// defer cancel()
-
-	// launch 100 go routines
-	for i := 0; i < 100; i++ {
-		go func(n int) {
-			fmt.Println("Launching goroutine:", n)
-			// infinite for loop
-			for {
-
-				// do work
-				time.Sleep(50 * time.Millisecond)
-
-				// go routine either exits or does work
-				select {
-				case <-ctx.Done():
-					runtime.Goexit() // exit go routine, similar to return
-				default:
-					fmt.Printf("goroutine %d doing work\n", n)
-					time.Sleep(50 * time.Millisecond)
-				}
-			}
-		}(i)
+	f, err := os.Open("file-01.txt")
+	if errors.Is(err, os.ErrNotExist) {
+		err = fmt.Errorf("error not exist : %w", err)
 	}
-
-	// goroutines finish in < 1 millisecond
-	time.Sleep(time.Millisecond)
-	fmt.Printf("GOROUTINES RUNNING AFTER ONE MILLISECOND = %d\n", runtime.NumGoroutine())
-
-	cancel()
-	// give goroutines time to exit
-	time.Sleep(100 * time.Millisecond)
-	fmt.Printf("GOROUTINES RUNNING AFTER CANCEL() = %d\n", runtime.NumGoroutine())
+	if errors.Is(err, os.ErrPermission) {
+		err = fmt.Errorf("permission denied : %w", err)
+	}
+	if !errors.Is(err, nil) {
+		err = fmt.Errorf("another error : %w", err)
+	}
+	defer f.Close()
+	fmt.Println("Stack error:\n", err)
 }
