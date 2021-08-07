@@ -26,7 +26,7 @@ func main() {
 
 	ctx.Done()
 
-	// *********
+	// ***** implement context with timeout
 
 	ctx = context.Background()
 	// time out at 1000 ms
@@ -39,12 +39,13 @@ func main() {
 	// is called and stops after sleep is done.
 	time.Sleep(5000 * time.Millisecond)
 
-	// do something
 	select {
 	case <-ctx.Done():
 		fmt.Println("work not finished")
 	default:
 		fmt.Println("work done")
 	}
+
+	// ***** launch 100 go routines
 
 }
