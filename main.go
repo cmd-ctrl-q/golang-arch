@@ -23,21 +23,23 @@ import (
 
 func main() {
 
+	var perr *os.PathError
 	f, err := os.Open("file-01.txt")
-	if errors.Is(err, os.ErrPermission) {
-		var pErr *os.PathError
-		if errors.As(err, &pErr) {
-			err = fmt.Errorf("permission denied : %w", pErr)
-		} else {
-			err = fmt.Errorf("permission denied : %w", err)
+	log.Println(err)
+	if err != nil {
+		switch {
+		case errors.Is(err, os.ErrPermission) && errors.As(err, &perr):
+			err = fmt.Errorf("you do not have permission to open file : %w and path is %s", err, perr.Path)
+		case errors.Is(err, os.ErrNotExist) && errors.As(err, &perr):
+			err = fmt.Errorf("file does not exist : %w and path is %s", err, perr.Path)
+		case errors.As(err, &perr):
+			err = fmt.Errorf("original error %s : path is %s", err, perr.Path)
+		case err != nil:
+			err = fmt.Errorf("file could not be opened : %s", err)
 		}
 		log.Println(err)
-	} else if errors.Is(err, os.ErrNotExist) {
-		err = fmt.Errorf("error not exist : %w", err)
-		log.Println(err)
-	} else if !errors.Is(err, nil) {
-		err = fmt.Errorf("file could not be opened : %w", err)
-		log.Println(err)
+	} else {
+		fmt.Println(f)
+		f.Close()
 	}
-	defer f.Close()
 }
